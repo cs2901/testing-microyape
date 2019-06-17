@@ -13,36 +13,132 @@ public class Dictionary {
     private static final Logger logger = Logger.getLogger(Dictionary.class.getName());
 
     private String encodedText;
-    private String initialLanguage = "en";
-    private List<URL> urls = new ArrayList<URL>();
-    private List<String> languagesCodes = Arrays.asList("es", "de", "fr");
-    private List<String> languages = Arrays.asList("spanish", "german", "french");
+    private String initialLanguage;
+    private URL url;
+    static private HashMap<String, String> languages = new HashMap<String, String>(){{
+        put("Afrikaans", "af");
+        put("Albanian", "sq");
+        put("Amharic", "am");
+        put("Arabic", "ar");
+        put("Armenian", "hy");
+        put("Azerbaijani", "az");
+        put("Basque", "eu");
+        put("Belarusian", "be");
+        put("Bengali", "bn");
+        put("Bosnian", "bs");
+        put("Bulgarian", "bg");
+        put("Catalan", "ca");
+        put("Cebuano", "ceb");
+        put("Chinese-(Simplified)", "zh-CN");
+        put("Chinese-(Traditional)", "zh-TW");
+        put("Corsican", "co");
+        put("Croatian", "hr");
+        put("Czech", "cs");
+        put("Danish", "da");
+        put("Dutch", "nl");
+        put("English", "en");
+        put("Esperanto", "eo");
+        put("Estonian", "et");
+        put("Finnish", "fi");
+        put("French", "fr");
+        put("Frisian", "fy");
+        put("Galician", "gl");
+        put("Georgian", "ka");
+        put("German", "de");
+        put("Greek", "el");
+        put("Gujarati", "gu");
+        put("Haitian-Creole", "ht");
+        put("Hausa", "ha");
+        put("Hawaiian", "haw");
+        put("Hebrew", "he");
+        put("Hindi", "hi");
+        put("Hmong", "hmn");
+        put("Hungarian", "hu");
+        put("Icelandic", "is");
+        put("Igbo", "ig");
+        put("Indonesian", "id");
+        put("Irish", "ga");
+        put("Italian", "it");
+        put("Japanese", "ja");
+        put("Javanese", "jw");
+        put("Kannada", "kn");
+        put("Kazakh", "kk");
+        put("Khmer", "km");
+        put("Korean", "ko");
+        put("Kurdish", "ku");
+        put("Kyrgyz", "ky");
+        put("Lao", "lo");
+        put("Latin", "la");
+        put("Latvian", "lv");
+        put("Lithuanian", "lt");
+        put("Luxembourgish", "lb");
+        put("Macedonian", "mk");
+        put("Malagasy", "mg");
+        put("Malay", "ms");
+        put("Malayalam", "ml");
+        put("Maltese", "mt");
+        put("Maori", "mi");
+        put("Marathi", "mr");
+        put("Mongolian", "mn");
+        put("Myanmar-(Burmese)", "my");
+        put("Nepali", "ne");
+        put("Norwegian", "no");
+        put("Nyanja-(Chichewa)", "ny");
+        put("Pashto", "ps");
+        put("Persian", "fa");
+        put("Polish", "pl");
+        put("Portuguese-(Portugal,-Brazil)", "pt");
+        put("Punjabi", "pa");
+        put("Romanian", "ro");
+        put("Russian", "ru");
+        put("Samoan", "sm");
+        put("Scots-Gaelic", "gd");
+        put("Serbian", "sr");
+        put("Sesotho", "st");
+        put("Shona", "sn");
+        put("Sindhi", "sd");
+        put("Sinhala-(Sinhalese)", "si");
+        put("Slovak", "sk");
+        put("Slovenian", "sl");
+        put("Somali", "so");
+        put("Spanish", "es");
+        put("Sundanese", "su");
+        put("Swahili", "sw");
+        put("Swedish", "sv");
+        put("Tagalog-(Filipino)", "tl");
+        put("Tajik", "tg");
+        put("Tamil", "ta");
+        put("Telugu", "te");
+        put("Thai", "th");
+        put("Turkish", "tr");
+        put("Ukrainian", "uk");
+        put("Urdu", "ur");
+        put("Uzbek", "uz");
+        put("Vietnamese", "vi");
+        put("Welsh", "cy");
+        put("Xhosa", "xh");
+        put("Yiddish", "yi");
+        put("Yoruba", "yo");
+        put("Zulu", "zu");
+    }};
 
     public Dictionary(String text){
-        try{
-            encodedText =  URLEncoder.encode(text, "UTF-8");
-        } catch (Exception e){
-            logger.log(Level.SEVERE, "Could not encode text. " + e.toString(), e);
-        }
-        createURLS();
+        encodedText = encodeText(text);
     }
 
-    private void createURLS() {
-        for (String targetLanguage : languagesCodes){
-            try{
-                urls.add (
-                        new URL (
-                        "https://translate.googleapis.com/translate_a/single?client=gtx" +
-                                "&sl=" + initialLanguage +
-                                "&tl=" + targetLanguage +
-                                "&dt=t&q=" + encodedText
-                        )
+    public Dictionary(){}
 
+
+    private void createURLS(String initLang, String targetLang) {
+        try{
+        url = new URL (
+                "https://translate.googleapis.com/translate_a/single?client=gtx" +
+                        "&sl=" + languages.get(initLang) +
+                        "&tl=" + languages.get(targetLang) +
+                        "&dt=t&q=" + encodedText
                 );
-            }catch(Exception e){
-                logger.log(Level.SEVERE, "Could not create URL. " + e.toString(), e);
-                return;
-            }
+        } catch(Exception e) {
+            logger.log(Level.SEVERE, "Could not create URL. " + e.toString(), e);
         }
     }
 
@@ -90,26 +186,32 @@ public class Dictionary {
     }
 
 
-    public HashMap<String, String> translate(){
-        HashMap<String, String> translations = new HashMap<String, String>();
+    public String translate(String initLang, String targetLang){
+        createURLS(initLang, targetLang);
 
-        for (int i=0; i<urls.size(); ++i){
-            if (makeRequest(urls.get(i)).length()==0) {
-                return translations;
-            }
-
-            String response;
-            // Make request
-            try {
-                response = makeRequest(urls.get(i));
-            }catch(Exception e){
-                logger.log(Level.SEVERE, "Could not create URL. " + e.toString(), e);
-                return translations;
-            }
-
-            translations.put(languages.get(i), parseResponse(response));
+        String response;
+        try {
+            response = makeRequest(url);
+        }catch(Exception e){
+            logger.log(Level.SEVERE, "Could not create URL. " + e.toString(), e);
+            return "";
         }
-        return translations;
+
+        return parseResponse(response);
     }
+
+    public String encodeText(String text){
+        try{
+            encodedText =  URLEncoder.encode(text, "UTF-8");
+        } catch (Exception e){
+            logger.log(Level.SEVERE, "Could not encode text. " + e.toString(), e);
+            return "";
+        }
+        return encodedText;
+    }
+
+
+    public void setText(String text){ encodedText = encodeText(text); }
+    static public List<String> getLanguages(){ return new ArrayList<String>(languages.keySet()); }
 
 }
